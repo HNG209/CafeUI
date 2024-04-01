@@ -3,6 +3,7 @@ package view;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Label;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -14,6 +15,7 @@ import java.awt.event.WindowEvent;
 import javax.lang.model.element.QualifiedNameable;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -30,6 +32,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import org.w3c.dom.events.MouseEvent;
+
+import model.dao.DrinkDAO;
+import model.entity.Drink;
 
 public class MainUI extends JFrame implements ActionListener, MouseListener, DocumentListener {
 	private JPanel pW;
@@ -58,15 +63,47 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 	private JButton b5;//<
 	private JButton b6;//>
 	
+	//for displaying drink pictures
+	private ImageIcon img;
+	private JLabel imgLabel;
+	private JLabel descriptionLabel;
+	private JLabel priceLabel;
+	
+	private int count = 0;
+	
+	private DrinkDAO drinkList;
 	public MainUI() {
 		super("MainUI");
-		pW= new JPanel();
-		pN= new JPanel();
-		pC= new JPanel();
-		pE= new JPanel();
-		pW.setPreferredSize(new Dimension(400,0));
-		pW.add(new JLabel("pic"));
-		pW.setBorder(BorderFactory.createTitledBorder("pic"));
+		
+		drinkList = new DrinkDAO();
+		drinkList.add(new Drink("D1", "Tra sua tran chau", 20000.0, "Trà sữa trân châu", "D:\\CafeUI\\CafeProject\\src\\assets\\IMG_Java\\traSua.jpg"));
+		drinkList.add(new Drink("D2", "chanh day", 35000.0, "chanh dây", "D:\\CafeUI\\CafeProject\\src\\assets\\IMG_Java\\chanhDay.jpg"));
+		drinkList.add(new Drink("D3", "Cafe sua", 15000.0, "cafe sữa", "D:\\CafeUI\\CafeProject\\src\\assets\\IMG_Java\\coffeeSua.jpg"));
+		drinkList.add(new Drink("D4", "Mocha", 45000.0, "Mocha", "D:\\CafeUI\\CafeProject\\src\\assets\\IMG_Java\\mocha.jpg"));
+		drinkList.add(new Drink("D5", "sinh to bo", 21000.0, "sinh tố bơ", "D:\\CafeUI\\CafeProject\\src\\assets\\IMG_Java\\sinhToBo.jpg"));
+
+		pW = new JPanel();
+		pN = new JPanel();
+		pC = new JPanel();
+		pE = new JPanel();
+		
+		pW.setPreferredSize(new Dimension(400,100));
+		pW.setBorder(BorderFactory.createTitledBorder("mô tả"));
+		//pictures
+		Box drinkImgGroup = Box.createVerticalBox();
+		
+		img = new ImageIcon();
+		drinkImgGroup.add(imgLabel = new JLabel("click to show image"));
+		priceLabel = new JLabel();
+		descriptionLabel = new JLabel();
+		priceLabel.setFont(new Font(Font.SERIF, Font.BOLD, 30));
+		descriptionLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
+		
+		drinkImgGroup.createRigidArea(new Dimension(0, 400));
+		drinkImgGroup.add(descriptionLabel);
+		drinkImgGroup.add(priceLabel);
+		
+		pW.add(drinkImgGroup);
 		add(pW,BorderLayout.WEST);
 		
 		Box box = Box.createVerticalBox();
@@ -104,17 +141,16 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		
 		boxTable.add(Box.createHorizontalStrut(10));
 		
-		String [] colDrink = {"Tên món","giá"};
-		tableDrink = new JTable(modelDrink = new DefaultTableModel(colDrink, 0));
+		String [] colDrink = {"Tên món", "giá"};
 		
+		//initialize tableDrink
+		tableDrink = new JTable(modelDrink = new DefaultTableModel(colDrink, 0));
+		loadDrinksToTable();
 		drinkGroup.add(new JScrollPane(tableDrink,
 				JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
 		
-		modelDrink.addRow(new String[] {"Cafe", "20000"});
-		modelDrink.addRow(new String[] {"Cafe Latte", "20000"});
-		modelDrink.addRow(new String[] {"Cafe tran chau duong den", "20000"});
-		modelDrink.addRow(new String[] {"Cafe sua tuoi tran chau duong den", "20000"});
+		
 
 		JPanel pAdd = new JPanel();
 		pAdd.add(b5 = new JButton("<"));
@@ -132,7 +168,8 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		boxTable.add(Box.createHorizontalStrut(10));
 
 		
-		String [] colBill = {"Tên món","giá","số lượng"};
+		String [] colBill = {"Tên món", "giá", "số lượng"};
+		//initialize tableBill
 		tableBill = new JTable(modelBill = new DefaultTableModel(colBill, 0));
 		Box billGroup = Box.createVerticalBox();
 		
@@ -147,7 +184,6 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		tableBill.addMouseListener(this);
 		tableDrink.addMouseListener(this);
 		JPanel billBtnGroup = new JPanel();//group 3 (+ - x) buttons together in a panel
-		//billBtnGroup.setPreferredSize(new Dimension(0, 600));
 		billBtnGroup.add(b1 = new JButton("+"));
 		billBtnGroup.add(drinkQuantity = new JTextField(3)); 
 		drinkQuantity.getDocument().addDocumentListener(this);
@@ -175,7 +211,7 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		add(boxTable,BorderLayout.CENTER);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setSize(1200,720);
+		setSize(1100,720);
 		setVisible(true);
 	}
 	private void returnLogin() {
@@ -191,10 +227,10 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		if(o.equals(b1)) {//+
 			int selectedRow = tableBill.getSelectedRow();
 			int quantity = Integer.parseInt(modelBill.getValueAt(selectedRow, 2).toString());
-			int price = Integer.parseInt(modelBill.getValueAt(selectedRow, 1).toString());
+			double price = Double.parseDouble(modelBill.getValueAt(selectedRow, 1).toString());
 			
 			//recalculate the price
-			int updatedPrice = (price / quantity) * (quantity + 1); 
+			double updatedPrice = (price / quantity) * (quantity + 1); 
 			tableBill.setValueAt(String.valueOf(quantity + 1), selectedRow, 2);
 			tableBill.setValueAt(String.valueOf(updatedPrice), selectedRow, 1);
 			drinkQuantity.setText(modelBill.getValueAt(tableBill.getSelectedRow(), 2).toString());
@@ -204,10 +240,10 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 			int selectedRow = tableBill.getSelectedRow();
 			int quantity = Integer.parseInt(modelBill.getValueAt(selectedRow, 2).toString());
 			if(quantity - 1 <= 0) return;
-			int price = Integer.parseInt(modelBill.getValueAt(selectedRow, 1).toString());
+			double price = Double.parseDouble(modelBill.getValueAt(selectedRow, 1).toString());
 			
 			//recalculate the price
-			int updatedPrice = (price / quantity) * (quantity - 1); 
+			double updatedPrice = (price / quantity) * (quantity - 1); 
 			tableBill.setValueAt(String.valueOf(quantity - 1), selectedRow, 2);
 			tableBill.setValueAt(String.valueOf(updatedPrice), selectedRow, 1);
 			drinkQuantity.setText(modelBill.getValueAt(tableBill.getSelectedRow(), 2).toString());
@@ -248,6 +284,11 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 			b3.setEnabled(true);
 		}
 		if(o.equals(tableDrink)) {
+			//set image when choosing items
+			imgLabel.setIcon(new ImageIcon(drinkList.getList().get(tableDrink.getSelectedRow()).getImgPath()));
+			imgLabel.setText("");
+			descriptionLabel.setText(drinkList.getList().get(tableDrink.getSelectedRow()).getDescription());
+			priceLabel.setText("Giá:  " + drinkList.getList().get(tableDrink.getSelectedRow()).getPrice());
 			b4.setEnabled(true);
 			b5.setEnabled(true);
 			b6.setEnabled(true);
@@ -290,14 +331,20 @@ public class MainUI extends JFrame implements ActionListener, MouseListener, Doc
 		textFieldChange();
 	}
 	
+	private void loadDrinksToTable() {
+		for(Drink i : drinkList.getList()) {
+			modelDrink.addRow(new String[] {i.getName(), String.valueOf(i.getPrice())});
+		}
+	}
+	   
 	private void textFieldChange() {
 		String value = drinkQuantity.getText();//new quantity
 		int selectedRow = tableBill.getSelectedRow();
 		if(selectedRow != -1) {
 			if(value.matches("\\d+")) {
 				int quantity = Integer.parseInt(modelBill.getValueAt(selectedRow, 2).toString());
-				int price = Integer.parseInt(modelBill.getValueAt(selectedRow, 1).toString());
-				int updatedPrice = (price / quantity) * Integer.parseInt(value); 
+				double price = Double.parseDouble(modelBill.getValueAt(selectedRow, 1).toString());
+				double updatedPrice = (price / quantity) * Integer.parseInt(value); 
 				
 				tableBill.setValueAt(String.valueOf(updatedPrice), selectedRow, 1);
 				modelBill.setValueAt(value, selectedRow, 2);
