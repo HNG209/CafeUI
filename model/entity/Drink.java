@@ -7,23 +7,25 @@ public class Drink {
 	private String name;
 	private double price;
 	private String description;
+	private Category category;
 	private String imgPath;
 	
-	public Drink(String iD, String name, double price, String description, String imgPath) {
+	public Drink(String iD, String name, double price, String description, Category c, String imgPath) {
 		super();
 		ID = iD;
 		this.name = name;
 		this.price = price;
 		this.description = description;
+		this.category = c;
 		this.imgPath = imgPath;
 	}
 	
 	public Drink() {
-		this("", "", 0.0, "", "");
+		this("", "", 0.0, "", Category.ALL, "");
 	}
 	
 	public Drink(String iD) {
-		this(iD, "", 0.0, "", "");
+		this(iD, "", 0.0, "", Category.ALL, "");
 	}
 
 	public String getID() {
@@ -58,6 +60,14 @@ public class Drink {
 		this.description = description;
 	}
 
+	public Category getCategory() {
+		return category;
+	}
+
+	public void setCategory(Category category) {
+		this.category = category;
+	}
+
 	public String getImgPath() {
 		return imgPath;
 	}
@@ -81,6 +91,12 @@ public class Drink {
 			return false;
 		Drink other = (Drink) obj;
 		return Objects.equals(ID, other.ID);
+	}
+
+	@Override
+	public String toString() {
+		return "Drink [ID=" + ID + ", name=" + name + ", price=" + price + ", description=" + description
+				+ ", category=" + category + ", imgPath=" + imgPath + "]";
 	}
 	
 	

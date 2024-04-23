@@ -32,7 +32,7 @@ public class Login extends JFrame implements ActionListener{
 		JPanel pW = new JPanel();
 		
 		Box logoGroup = Box.createVerticalBox();
-		ImageIcon imageIcon = new ImageIcon("D:\\CafeUI\\CafeProject\\src\\assets\\cafeLogo.png");
+		ImageIcon imageIcon = new ImageIcon("src\\assets\\cafeLogo.png");
 		ImageIcon scaledIcon = scaleImageIcon(imageIcon, 200, 200);
 		JLabel imageLabel = new JLabel(scaledIcon);
 		
